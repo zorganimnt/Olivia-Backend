@@ -1,56 +1,52 @@
-const mongoose = require('mongoose');
-const bcrypt= require ('bcrypt');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
-    firstName:{
-        type: String,
-        required: true,
-        trim: true,
-        min: 3,
-        max: 20
+const userSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: true,
     },
-    lastName:{
-        type: String,
-        required: true,
-        trim: true,
-        min: 3,
-        max: 20
+    email: {
+      type: String,
+      unique: true,
+      required: true,
     },
-    email:{
-        type: String,
-        required: true,
-        trim: true,
-        unique: true
+    password: {
+      type: String,
+      required: true,
     },
-    password:{
-        type: String,
-        required: true,
-    },
-    role:{
-        type: String,
-        enum: ['customer','admin','seller'],
-        default: 'customer'
-    },
-    contact:{
-        type: String
+    phone: {
+      type: String,
     },
     picture: {
-        type: String 
-    }
+      type: String,
+      default:
+        'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png',
+    },
+    role: {
+      type: String,
+      required: true,
+      default: 'Customer',
+      of: ['Customer', 'Seller', 'Admin'],
+    },
+  },
+  { timestamps: true }
+);
 
+userSchema.methods.comparePassword = async function (userPassword) {
+  return await bcrypt.compare(userPassword, this.password);
+};
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
-//hash password
-userSchema.pre("save", async function (next) {
-    const salt = await bcrypt.genSalt();
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  });
+const User = mongoose.model('User', userSchema);
 
-userSchema.methods ={
-    authenticate: function(password){
-        return bcrypt.compareSync(password, this.password);
-    }
-}
-
-module.exports = mongoose.model('User', userSchema);
+export default User;
