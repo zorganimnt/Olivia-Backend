@@ -1,26 +1,28 @@
-const express = require('express');
-const { createProduct, getProductDetailsById } = require('../controllers/product');
-const { requireSignin, sellerMiddleware } = require('../middlewares/permissions/permission');
-const multer = require('multer');
+import express from 'express';
+import {
+  createProduct,
+  deleteProduct,
+  getCarouselProducts,
+  getFeaturedProducts,
+  getProductById,
+  updateProduct,
+} from '../controllers/product.js';
+import { admin, auth } from '../middleware/permission.js';
+import validation from '../utils/validation/index.js';
+import { createProductSchema } from '../utils/validation/product.js';
+
 const router = express.Router();
-const path = require ('path');
-const shortid = require ('shortid');
 
+router
+  .route('/')
+  .post(auth, admin, createProductSchema, validation, createProduct)
+router.route('/featured').get(getFeaturedProducts);
+router.route('/carousel').get(getCarouselProducts);
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, path.join(path.dirname(__dirname), "uploads"));
-    },
-    filename: function (req, file, cb) {
-      cb(null, shortid.generate() + "-" + file.originalname);
-    },
-  });
-  const upload = multer ({storage});
+router
+  .route('/:id')
+  .get(getProductById)
+  .put(updateProduct)
+  .delete(deleteProduct);
 
-router.post('/product/createPro',requireSignin,sellerMiddleware,upload.array('productPicture'),createProduct);
-router.get('/product/getByID',requireSignin,sellerMiddleware,getProductDetailsById);
-
-
-
-
-module.exports = router;
+export default router;
