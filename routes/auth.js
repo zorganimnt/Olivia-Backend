@@ -1,20 +1,20 @@
-const express = require('express');
+import express from 'express';
+import {
+  refreshToken,
+  userLogin,
+  userLogout,
+  userRegister,
+} from '../controllers/auth.js';
+import loginLimiter from '../middleware/limite-loger.js';
+
+import { loginSchema, registerSchema } from '../utils/validation/auth.js';
+import validation from '../utils/validation/index.js';
+
 const router = express.Router();
-const { signup, signin} = require('../controllers/auth')
-const { validateSignupRequest,validateSigninRequest,isRequestValidated } = require('../middlewares/validation/auth.validation');
 
+router.route('/register').post(registerSchema, validation, userRegister);
+router.route('/login').post(loginSchema, validation, loginLimiter, userLogin);
+router.route('/logout').post(userLogout);
+router.route('/refresh').post(refreshToken);
 
-router.post('/signup',validateSignupRequest,isRequestValidated ,signup);
-router.post('/signin', validateSigninRequest,isRequestValidated, signin);
- 
-
-
-
-
-/*router.post('/profile', requireSignin,(req, res) => {
-    res.status(200).json({user: 'profile'})
-})*/
-
-
-
-module.exports = router;
+export default router;

@@ -1,12 +1,5 @@
-const express = require('express');
-const { addCategory, getCategories } = require('../controllers/category');
-const { requireSignin, adminMiddleware } = require('../middlewares/permissions/permission');
+import express from 'express';
+
 const router = express.Router();
 
-
-router.post('/category/create',requireSignin,adminMiddleware,addCategory);
-router.get('/category/getCategory',getCategories);
-
-
-
-module.exports = router;
+export default router;
